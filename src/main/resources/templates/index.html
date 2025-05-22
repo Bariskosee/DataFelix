@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dataflix - Home</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="/index">DataFelix</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/index">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/profile">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to DataFelix</h1>
+        <p class="hero-subtitle">Discover your next favorite movies and TV shows</p>
+        <form th:action="@{/search}" method="get" class="mb-4">
+            <div class="input-group">
+                <input type="text" class="form-control form-control-lg" name="query" placeholder="Search for movies, TV shows, genres...">
+                <button class="btn btn-primary btn-lg" type="submit">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Trending Section -->
+    <h2 class="section-title mb-4">Trending Now</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5">
+        <div class="col" th:each="content : ${contentList}" th:if="${contentList.indexOf(content) < 4}">
+            <div class="card h-100">
+                <img th:src="${content.posterUrl}" class="card-img-top" alt="Poster"
+                     onerror="this.onerror=null;this.src='/images/placeholder_movie.png';">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${content.title}"></h5>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="rating-stars me-2">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span th:text="${content.imdb}"></span>
+                    </div>
+                    <p class="card-text" th:text="${#strings.abbreviate(content.description, 80)}"></p>
+                    <a th:href="${content.detailUrl}" class="btn btn-primary w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movies Section -->
+    <h2 class="section-title mb-4">Movies</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5">
+        <div class="col" th:each="content : ${contentList}" th:if="${content.detailUrl.contains('movie') && contentList.indexOf(content) < 8}">
+            <div class="card h-100">
+                <img th:src="${content.posterUrl}" class="card-img-top" alt="Poster"
+                     onerror="this.onerror=null;this.src='/images/placeholder_movie.png';">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${content.title}"></h5>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="rating-stars me-2">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span th:text="${content.imdb}"></span>
+                    </div>
+                    <p class="card-text" th:text="${#strings.abbreviate(content.description, 80)}"></p>
+                    <a th:href="${content.detailUrl}" class="btn btn-primary w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TV Series Section -->
+    <h2 class="section-title mb-4">TV Series</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5">
+        <div class="col" th:each="content : ${contentList}" th:if="${content.detailUrl.contains('series') && contentList.indexOf(content) < 8}">
+            <div class="card h-100">
+                <img th:src="${content.posterUrl}" class="card-img-top" alt="Poster"
+                     onerror="this.onerror=null;this.src='/images/placeholder_series.png';">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${content.title}"></h5>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="rating-stars me-2">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span th:text="${content.imdb}"></span>
+                    </div>
+                    <p class="card-text" th:text="${#strings.abbreviate(content.description, 80)}"></p>
+                    <a th:href="${content.detailUrl}" class="btn btn-primary w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h4 class="footer-title">DataFelix</h4>
+                <p class="text-muted">Your ultimate movie and TV series platform.</p>
+                <div class="social-icons mt-3">
+                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="col-md-2 mb-4">
+                <h5 class="footer-title">Navigation</h5>
+                <ul class="footer-links">
+                    <li><a href="/index">Home</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2 mb-4">
+                <h5 class="footer-title">Categories</h5>
+                <ul class="footer-links">
+                    <li><a href="#">Action</a></li>
+                    <li><a href="#">Comedy</a></li>
+                    <li><a href="#">Drama</a></li>
+                    <li><a href="#">Sci-Fi</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5 class="footer-title">Newsletter</h5>
+                <p class="text-muted">Subscribe to our newsletter for the latest updates.</p>
+                <div class="input-group mt-3">
+                    <input type="email" class="form-control" placeholder="Your email">
+                    <button class="btn btn-primary">Subscribe</button>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <p class="text-muted">© 2025 DataFelix. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
