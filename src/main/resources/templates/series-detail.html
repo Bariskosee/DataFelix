@@ -43,9 +43,23 @@
                      onerror="this.onerror=null;this.src='/images/placeholder_series.png';">
             </div>
             <div class="col-md-8">
-                <div class="d-flex align-items-center mb-3">
-                    <h1 class="movie-title mb-0" th:text="${series.seriesName}"></h1>
-                    <i class="favorite-btn far fa-heart ms-3" id="favoriteBtn"></i>
+                <h1 class="movie-title mb-0" th:text="${series.seriesName}"></h1>
+                
+                <div class="actions d-flex justify-content-between mt-3 mb-4">
+                    <div class="user-rating">
+                        <span class="me-2">Your Rating:</span>
+                        <div class="rating-input d-inline-block">
+                            <i class="rate-star far fa-star" data-rating="1"></i>
+                            <i class="rate-star far fa-star" data-rating="2"></i>
+                            <i class="rate-star far fa-star" data-rating="3"></i>
+                            <i class="rate-star far fa-star" data-rating="4"></i>
+                            <i class="rate-star far fa-star" data-rating="5"></i>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <i class="favorite-btn far fa-heart" id="favoriteBtn" title="Add to Favorites"></i>
+                        <i class="watched-btn far fa-check-circle" id="watchedBtn" title="Mark as watched"></i>
+                    </div>
                 </div>
                 
                 <div class="movie-info">
@@ -96,13 +110,47 @@
             </div>
         </div>
     </div>
+    
+    <!-- Comment Section -->
+    <div class="comment-section mt-5">
+        <h3 class="mb-4">Comments</h3>
+        
+        <!-- Comment Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form id="commentForm">
+                    <div class="mb-3">
+                        <textarea class="form-control" id="commentContent" rows="3" placeholder="Leave a comment..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Comments List -->
+        <div id="commentsList">
+            <!-- Comments will be loaded here dynamically -->
+            <div class="text-center" id="commentsLoading">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <div id="noComments" class="text-center d-none">
+                <p>No comments yet. Be the first to comment!</p>
+            </div>
+        </div>
+    </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const seriesId = window.location.pathname.split('/').pop();
         const favoriteBtn = document.getElementById('favoriteBtn');
+        const watchedBtn = document.getElementById('watchedBtn');
+        const ratingStars = document.querySelectorAll('.rate-star');
         let isFavorite = false;
+        let isWatched = false;
+        let userRating = 0;
 
         console.log("Series detail page loaded, seriesId:", seriesId);
         
@@ -111,14 +159,43 @@
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
         console.log("CSRF token available:", !!csrfToken);
         
-        // Check if series is in favorites
+        // Check initial statuses
         checkFavoriteStatus();
+        checkWatchedStatus();
+        checkRatingStatus();
 
         // Toggle favorite status when button is clicked
         favoriteBtn.addEventListener('click', function(event) {
             console.log("Favorite button clicked");
             event.preventDefault();
             toggleFavorite();
+        });
+        
+        // Toggle watched status when button is clicked
+        watchedBtn.addEventListener('click', function(event) {
+            console.log("Watched button clicked");
+            event.preventDefault();
+            toggleWatched();
+        });
+        
+        // Add rating functionality
+        ratingStars.forEach(star => {
+            // Hover effect
+            star.addEventListener('mouseover', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                updateStarsDisplay(rating, true);
+            });
+            
+            // Reset on mouseout if not selected
+            star.addEventListener('mouseout', function() {
+                updateStarsDisplay(userRating, false);
+            });
+            
+            // Click to set rating
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                rateSeries(rating);
+            });
         });
 
         function checkFavoriteStatus() {
@@ -149,6 +226,158 @@
                 });
         }
 
+        function checkWatchlistStatus() {
+            console.log("Checking watchlist status for series ID:", seriesId);
+            fetch(`/api/watch/watchlist/check/series/${seriesId}`)
+                .then(response => {
+                    console.log("Watchlist check response status:", response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Watchlist check data:", data);
+                    if (data.inWatchlist) {
+                        watchlistBtn.classList.remove('far');
+                        watchlistBtn.classList.add('fas', 'active');
+                        inWatchlist = true;
+                        console.log("Series is in watchlist, updated UI");
+                    } else {
+                        watchlistBtn.classList.remove('fas', 'active');
+                        watchlistBtn.classList.add('far');
+                        inWatchlist = false;
+                        console.log("Series is not in watchlist, updated UI");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking watchlist status:', error);
+                    watchlistBtn.classList.remove('fas', 'active');
+                    watchlistBtn.classList.add('far');
+                });
+        }
+
+        function checkWatchedStatus() {
+            console.log("Checking watched status for series ID:", seriesId);
+            fetch(`/api/watch/watched/check/series/${seriesId}`)
+                .then(response => {
+                    console.log("Watched check response status:", response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Watched check data:", data);
+                    if (data.isWatched) {
+                        watchedBtn.classList.remove('far');
+                        watchedBtn.classList.add('fas', 'active');
+                        isWatched = true;
+                        console.log("Series is marked as watched, updated UI");
+                    } else {
+                        watchedBtn.classList.remove('fas', 'active');
+                        watchedBtn.classList.add('far');
+                        isWatched = false;
+                        console.log("Series is not marked as watched, updated UI");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking watched status:', error);
+                    watchedBtn.classList.remove('fas', 'active');
+                    watchedBtn.classList.add('far');
+                });
+        }
+
+        function toggleWatchlist() {
+            const endpoint = inWatchlist 
+                ? `/api/watch/watchlist/remove/series/${seriesId}` 
+                : `/api/watch/watchlist/add/series/${seriesId}`;
+            const method = inWatchlist ? 'DELETE' : 'POST';
+            
+            console.log(`Toggling watchlist status. Current status: ${inWatchlist ? 'In watchlist' : 'Not in watchlist'}`);
+            console.log(`Sending ${method} request to ${endpoint}`);
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+            
+            // Add CSRF token if available
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader] = csrfToken;
+            }
+
+            fetch(endpoint, {
+                method: method,
+                headers: headers,
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                console.log("Toggle watchlist response status:", response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log("Toggle watchlist response data:", data);
+                if (data.success) {
+                    inWatchlist = !inWatchlist;
+                    if (inWatchlist) {
+                        watchlistBtn.classList.remove('far');
+                        watchlistBtn.classList.add('fas', 'active');
+                        console.log("Added to watchlist, updated UI");
+                    } else {
+                        watchlistBtn.classList.remove('fas', 'active');
+                        watchlistBtn.classList.add('far');
+                        console.log("Removed from watchlist, updated UI");
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling watchlist status:', error);
+            });
+        }
+
+        function toggleWatched() {
+            const endpoint = isWatched 
+                ? `/api/watch/watched/remove/series/${seriesId}` 
+                : `/api/watch/watched/add/series/${seriesId}`;
+            const method = isWatched ? 'DELETE' : 'POST';
+            
+            console.log(`Toggling watched status. Current status: ${isWatched ? 'Watched' : 'Not watched'}`);
+            console.log(`Sending ${method} request to ${endpoint}`);
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+            
+            // Add CSRF token if available
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader] = csrfToken;
+            }
+
+            fetch(endpoint, {
+                method: method,
+                headers: headers,
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                console.log("Toggle watched response status:", response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log("Toggle watched response data:", data);
+                if (data.success) {
+                    isWatched = !isWatched;
+                    if (isWatched) {
+                        watchedBtn.classList.remove('far');
+                        watchedBtn.classList.add('fas', 'active');
+                        console.log("Marked as watched, updated UI");
+                    } else {
+                        watchedBtn.classList.remove('fas', 'active');
+                        watchedBtn.classList.add('far');
+                        console.log("Unmarked as watched, updated UI");
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling watched status:', error);
+            });
+        }
+        
         function toggleFavorite() {
             const endpoint = isFavorite 
                 ? `/favorites/series/remove/${seriesId}` 
@@ -195,6 +424,131 @@
             })
             .catch(error => {
                 console.error('Error toggling favorite:', error);
+            });
+        }
+    });
+</script>
+
+<!-- Comment handling script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const seriesId = window.location.pathname.split('/').pop();
+        const commentForm = document.getElementById('commentForm');
+        const commentContent = document.getElementById('commentContent');
+        const commentsList = document.getElementById('commentsList');
+        const commentsLoading = document.getElementById('commentsLoading');
+        const noComments = document.getElementById('noComments');
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+        
+        // Load comments when page loads
+        loadComments();
+        
+        // Handle comment submission
+        commentForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            if (commentContent.value.trim() === '') {
+                alert('Please enter a comment');
+                return;
+            }
+            
+            submitComment();
+        });
+        
+        // Function to load comments
+        function loadComments() {
+            fetch(`/api/comments/series/${seriesId}`)
+                .then(response => response.json())
+                .then(comments => {
+                    commentsLoading.classList.add('d-none');
+                    
+                    if (comments.length === 0) {
+                        noComments.classList.remove('d-none');
+                        return;
+                    }
+                    
+                    renderComments(comments);
+                })
+                .catch(error => {
+                    console.error('Error loading comments:', error);
+                    commentsLoading.classList.add('d-none');
+                    commentsList.innerHTML += '<div class="alert alert-danger">Error loading comments</div>';
+                });
+        }
+        
+        // Function to render comments
+        function renderComments(comments) {
+            let commentsHTML = '';
+            
+            comments.forEach(comment => {
+                const date = new Date(comment.commentDate).toLocaleString();
+                commentsHTML += `
+                    <div class="card mb-3 comment-card">
+                        <div class="card-body">
+                            <h5 class="card-title">${comment.userEmail}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">${date}</h6>
+                            <p class="card-text">${comment.commentText}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Replace loading spinner with comments
+            const loadingElement = document.getElementById('commentsLoading');
+            if (loadingElement) {
+                loadingElement.remove();
+            }
+            
+            // Add comments to list
+            const commentsListContent = document.createElement('div');
+            commentsListContent.innerHTML = commentsHTML;
+            commentsList.appendChild(commentsListContent);
+        }
+        
+        // Function to submit a comment
+        function submitComment() {
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+            
+            // Add CSRF token if available
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader] = csrfToken;
+            }
+            
+            const formData = new URLSearchParams();
+            formData.append('seriesId', seriesId);
+            formData.append('commentText', commentContent.value);
+            
+            fetch('/api/comments/series/add', {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear form
+                    commentContent.value = '';
+                    
+                    // If this is the first comment, remove the "no comments" message
+                    if (!noComments.classList.contains('d-none')) {
+                        noComments.classList.add('d-none');
+                    }
+                    
+                    // Add the new comment to the top of the list
+                    const comments = [data.comment];
+                    renderComments(comments);
+                } else {
+                    alert('Error adding comment: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error adding comment:', error);
+                alert('Error adding comment. Please try again.');
             });
         }
     });

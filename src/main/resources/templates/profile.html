@@ -5,6 +5,14 @@
     <title>Profile - Dataflix</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .container {
+            background-color: #000000;
+            color: #ffffff;
+        }
         .card-img-top {
             width: 100%;
             height: 220px;
@@ -17,15 +25,33 @@
         .profile-info-card {
             max-width: 500px;
             margin: 0 auto 30px auto;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(255,255,255,0.08);
             border-radius: 12px;
+            background-color: #222;
+            color: #fff;
         }
         .card {
             transition: transform 0.3s;
+            background-color: #222;
+            color: #fff;
         }
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(255,255,255,0.1);
+        }
+        .nav-tabs .nav-link {
+            color: #fff;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: #333;
+            color: #fff;
+            border-color: #444;
+        }
+        .text-muted {
+            color: #aaa !important;
+        }
+        h1, h4, h5, h6 {
+            color: #fff;
         }
     </style>
 </head>

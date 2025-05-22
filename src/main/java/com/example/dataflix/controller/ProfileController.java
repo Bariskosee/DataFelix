@@ -1,5 +1,6 @@
 package com.example.dataflix.controller;
 
+import com.example.dataflix.dto.ContentItemDto;
 import com.example.dataflix.model.Like;
 import com.example.dataflix.model.Movie;
 import com.example.dataflix.model.MovieFavorite;
@@ -14,6 +15,7 @@ import com.example.dataflix.repository.SeriesFavoriteRepository;
 import com.example.dataflix.repository.SeriesRepository;
 import com.example.dataflix.repository.UserRepository;
 import com.example.dataflix.service.UserService;
+import com.example.dataflix.service.WatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -37,6 +39,7 @@ public class ProfileController {
     @Autowired private UserRepository userRepository;
     @Autowired private UserService userService;
     @Autowired private BCryptPasswordEncoder passwordEncoder;
+    @Autowired private WatchService watchService;
 
     @GetMapping("/profile")
     public String profile(Model model, Principal principal) {
@@ -71,10 +74,16 @@ public class ProfileController {
                 .filter(s -> s != null)
                 .collect(Collectors.toList());
 
+        // Get watchlist and watched items
+        List<ContentItemDto> watchlistItems = watchService.getUserWatchlist(userId.intValue());
+        List<ContentItemDto> watchedItems = watchService.getUserWatchedList(userId.intValue());
+
         model.addAttribute("favoriteMovies", favoriteMovies);
         model.addAttribute("favoriteSeries", favoriteSeries);
         model.addAttribute("likedMovies", likedMovies);
         model.addAttribute("likedSeries", likedSeries);
+        model.addAttribute("watchlistItems", watchlistItems);
+        model.addAttribute("watchedList", watchedItems);
         return "profile";
     }
 
